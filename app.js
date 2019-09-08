@@ -8,6 +8,7 @@ const { conn } = require('./db');
 module.exports = app;
 
 app.use(express.json());
+app.use(require('cors')());
 
 Object.entries(conn.models).forEach(([name, model])=>{
     console.log(pluralize(name))
@@ -38,4 +39,8 @@ Object.entries(conn.models).forEach(([name, model])=>{
             .then(item=>res.send(item))
             .catch(next)
     })
+})
+
+app.use((err, req, res, next)=>{
+    res.status(500).send(err);
 })

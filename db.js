@@ -12,6 +12,7 @@ const uuidDefinition = {
 const nameDefinition = {
     type: STRING,
     allowNull: false,
+    unique: true,
     validate: {
         notEmpty: true
     }
@@ -19,7 +20,36 @@ const nameDefinition = {
 
 const User = conn.define('user', {
     id: uuidDefinition,
-    name: nameDefinition
+    name: nameDefinition,
+}, {
+    hooks: {
+        beforeSave: async function(user){
+            try{
+                let count = 0;
+                // if(user.departmentId === ''){
+                //     user.departmentId = null
+                // }
+                if(user.departmentId){
+                    const users = await User.findAll({where: {
+                        departmentId: user.departmentId,
+                        id: {
+                            [Sequelize.Op.ne]: user.id
+                        }
+                    }});
+                    count = users.length;
+                    if(count > 4){
+                        const error = new Error();
+                        error.message = `there are already ${count} users in this department`;
+                        throw error;
+                    }
+                }
+            }
+            catch(ex){
+                console.log(ex);
+                throw ex;
+            }
+        }
+    }
 });
 const Department = conn.define('department', {
     id: uuidDefinition,

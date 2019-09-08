@@ -24,6 +24,22 @@ describe('Acme TDD', () => {
             it('name can not be empty string', () => {
                 return User.create({ name: ''})
                     .catch( ex => expect(ex.errors[0].path).to.equal('name'))
+            });
+            it('can not create more than 5 user under one department', async ()=>{
+                try{
+                    await User.create({ name: 'First User', departmentId: seed.departments.Admin.id})
+                    await User.create({ name: 'Second User', departmentId: seed.departments.Admin.id})
+                    await User.create({ name: 'Third User', departmentId: seed.departments.Admin.id})
+                    await User.create({ name: 'Fourth User', departmentId: seed.departments.Admin.id})
+                    await User.create({ name: 'Fifth User', departmentId: seed.departments.Admin.id})
+                }catch(ex){
+                    expect(ex).to.ok
+                }
+            })
+        });
+        describe('Department validation', ()=>{
+            it('there are three departments', ()=>{
+                expect(Object.keys(seed.departments).length).to.equal(3)
             })
         });
     });
@@ -40,10 +56,11 @@ describe('Acme TDD', () => {
         describe('POST /api/users', () => {
             it('can create a user', () => {
                 return app.post('/api/users')
-                    .send({ name: 'larry' })
+                    .send({ name: 'larry', departmentId: seed.departments.Admin.id })
                     .expect(201)
                     .then(response => {
                         expect(response.body.name).to.equal('larry')
+                        expect(response.body.departmentId).to.equal(seed.departments.Admin.id)
                     })
             })
         });
